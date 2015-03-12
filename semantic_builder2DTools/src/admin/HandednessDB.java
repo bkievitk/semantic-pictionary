@@ -118,7 +118,7 @@ public class HandednessDB {
 				String line = "";
 				try {
 					System.out.println((i++) + "/" + models.size());
-					URL url = new URL("http://www.indiana.edu/~semantic/io/admingetUserFromObject.php?adminPassword=" + ModelManager.adminPassword + "=" + model.modelID);
+					URL url = new URL("http://www.indiana.edu/~semantic/io/admingetUserFromObject.php?adminPassword=" + ModelManager.adminPassword + "&modelID=" + model.modelID);
 					BufferedReader r = new BufferedReader(new InputStreamReader(url.openStream()));
 					line = r.readLine();
 					String[] parts = line.split("~");

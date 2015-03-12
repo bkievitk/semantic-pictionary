@@ -3,6 +3,7 @@ package comparison.tree2D;
 import java.awt.Color;
 import java.util.Hashtable;
 
+import modelTools.Primitive2D;
 import modelTools.PrimitiveBase;
 
 import tools.MyArrays;
@@ -16,13 +17,13 @@ import creator2DTree.PrimitiveInstance2DTree;
 public class Comparator2DTreeBEAGLE implements Comparator2DTree {
 
 	public static final int DIMENSIONS = 200;
-	private static Hashtable<Color,double[]> colorVectors = new Hashtable<Color,double[]>();
-	private static Hashtable<PrimitiveBase,double[]> shapeVectors = new Hashtable<PrimitiveBase,double[]>();
-	private static double[][][] rotationVectors = buildVectorSet(3,3);
-	private static double[][][] scaleVectors = buildVectorSet(3,3);
+	public static Hashtable<Color,double[]> colorVectors = new Hashtable<Color,double[]>();
+	public static Hashtable<PrimitiveBase,double[]> shapeVectors = new Hashtable<PrimitiveBase,double[]>();
+	public static double[][][] rotationVectors = buildVectorSet(3,3);
+	public static double[][][] scaleVectors = buildVectorSet(3,3);
 	
-	private static double[][][] childAttachmentVectors = buildVectorSet(3,3);
-	private static double[][][] parentAttachmentVectors = buildVectorSet(3,3);
+	public static double[][][] childAttachmentVectors = buildVectorSet(3,3);
+	public static double[][][] parentAttachmentVectors = buildVectorSet(3,3);
 
 	private int connectionType;
 	public static final int CONNECTION_ROTATE = 0;
@@ -94,6 +95,17 @@ public class Comparator2DTreeBEAGLE implements Comparator2DTree {
 			}
 		}
 		return rotation;
+	}
+	
+	public static void init() {
+		getColorVector(Color.RED);
+		getColorVector(Color.GREEN);
+		getColorVector(Color.BLUE);
+		getColorVector(Color.BLACK);
+		getShapeVector(Primitive2D.shapes.get("square"));
+		getShapeVector(Primitive2D.shapes.get("triangle"));
+		getShapeVector(Primitive2D.shapes.get("hexagon"));
+		getShapeVector(Primitive2D.shapes.get("circle"));
 	}
 
 	public static double[] getColorVector(Color color) {

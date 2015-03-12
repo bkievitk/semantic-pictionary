@@ -23,14 +23,14 @@ public class Stats {
 
 	public static void main(String[] args) {
 		
-		Vector<ModelData> models = ModelManager.getAllModels(new File("3-29-2012.dat"));
+		Vector<ModelData> models = ModelManager.getAllModels(new File("9-24-13.dat"));
 		ModelManager.refineModels(models);
 
         Hashtable<String,Vector<ModelData>> modelsWordGrouped = ModelManager.getAllWordModels(models);
         
 		Color backgroundColor = new Color(250,250,250);
 		
-		String word = "car ";
+		String word = "car";
 		
 		show3DHistogram(histogram(modelsWordGrouped.get(word), 5, backgroundColor));
 		ComparisonManager.showModels(modelsWordGrouped.get(word), "");
@@ -57,10 +57,16 @@ public class Stats {
 		return histogram(model, bins, new Color(250,250,250));
 	}
 	
+	public static int[][][] histogram(Model2DTree model, int bins) {
+		return histogram(model, bins, new Color(250,250,250));
+	}
+	
 	public static int[][][] histogram(ModelData model, int bins, Color backgroundColor) {
-		
-		Model2DTree selectedModelTree = (Model2DTree)model.model;		
-		
+		return histogram((Model2DTree)model.model, bins, backgroundColor);
+	}
+	
+	public static int[][][] histogram(Model2DTree selectedModelTree, int bins, Color backgroundColor) {
+				
 		BufferedImage background = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
 		Graphics g = background.getGraphics();
 		g.setColor(backgroundColor);

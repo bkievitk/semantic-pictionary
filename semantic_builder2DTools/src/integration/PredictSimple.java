@@ -5,9 +5,9 @@ import java.util.*;
 
 import javax.imageio.ImageIO;
 
+import modelManager.Guess;
 import comparison.tree2D.Comparator2DTreeBEAGLE;
 import creator2DTree.Model2DTree;
-
 import tools.KBox;
 import tools.Stats;
 import tools.VectorTools;
@@ -19,64 +19,124 @@ public class PredictSimple {
 
 
 	public static void main(String[] args) {
-				
+		//buildAll();
+		
+		
 		try {
 			ObjectInputStream ois;
-			String[] newWords = {"law","love","dog"};
 			
-			ois = new ObjectInputStream(new FileInputStream(new File("objVecs/beagleWord.dat")));
-			Hashtable<String,double[]> beagleWord = (Hashtable<String,double[]>)ois.readObject();
-			ois.close();
-
-			for(String newWord : newWords) {
-				beagleWord.put(newWord, buildBEAGLEWordSimilarity(new File("matrix.txt"), new File("word_labels.txt"), newWord));
-			}
+			String[] types = {"beagleWord","flickrHistogram","googleHistogram","mcRae","spBEAGLE","spHistogram"};
+			Hashtable<String,Hashtable<String,double[]>> dataSets = new Hashtable<String,Hashtable<String,double[]>>();
 			
-			ois = new ObjectInputStream(new FileInputStream(new File("objVecs/mcRae.dat")));
-			Hashtable<String,double[]> mcRae = (Hashtable<String,double[]>)ois.readObject();
-			ois.close();
-
-			ois = new ObjectInputStream(new FileInputStream(new File("objVecs/spHistogram.dat")));
-			Hashtable<String,double[]> spHistogram = (Hashtable<String,double[]>)ois.readObject();
-			ois.close();
-			
-			Hashtable[] knowledgeDomains = {beagleWord, mcRae, spHistogram};
-
-			// Extract feature numbers.
-			BufferedReader r = new BufferedReader(new FileReader(new File("McRaeFeatures.csv")));
-			String line;
-			
-			Vector<String> featureList = new Vector<String>();
-			HashSet<String> featureSet = new HashSet<String>();
-			while((line = r.readLine()) != null) {
-				String feature = line.split(",")[1];
-				if(!featureSet.contains(feature)) {
-					featureSet.add(feature);
-					featureList.add(feature);
-				}
-			}
-			r.close();
-			
-			for(String newWord : newWords) {
-				double[] ret = predictDomain(knowledgeDomains, newWord, 2);				
-				int[][][] histogram = HistogramIntegration.toHistogram(ret, 1.0);
-				Stats.show3DHistogram(histogram, newWord);
+			for(String type : types) {
+				ois = new ObjectInputStream(new FileInputStream(new File("objVecs/" + type + ".dat")));
+				Hashtable<String,double[]> data = (Hashtable<String,double[]>)ois.readObject();
+				ois.close();
+				dataSets.put(type, data);
 				
-				System.out.println(newWord + ":");
-				
-				ret = predictDomain(knowledgeDomains, newWord, 1);
-				for(int i=0;i<ret.length;i++) {
-					if(ret[i] > 5) {
-						System.out.println("  " + featureList.get(i) + " " + ret[i]);
+				for(String key : data.keySet()) {
+					double[] val = data.get(key);
+					double max = 0;
+					double min = 0;
+					for(double v : val) {
+						max = Math.max(max, v);
+						min = Math.min(min, v);
+					}
+					if(max > 10000000 || min < -10000000) {
+						System.out.println(type + ":" + key + ":" + max + ":" + min);
 					}
 				}
-				System.out.println();
 			}
+			System.out.println("Done loading.");
+
+			BufferedWriter w = new BufferedWriter(new FileWriter(new File("know1Predict1.csv")));
+			for(String type1 : types) {
+				for(String type2 : types) {
+					if(type1 != type2) {
+						
+						int count = 0;
+						Hashtable<String,double[]> other = dataSets.get(type2);
+						for(String s : dataSets.get(type1).keySet()) {
+							if(other.containsKey(s)) {
+								count++;
+							}
+						}
+						
+						System.out.println(type1 + " x " + type2);
+						w.write(type1 + "," + type2 + "," + count + "\r\n");
+						double[][] resultReal = knowOnePredictOne(dataSets.get(type1), dataSets.get(type2));
+						double[][] resultRand = knowOnePredictOneRand(dataSets.get(type1), dataSets.get(type2));
+
+						for(int i=0;i<100;i++) {
+							w.write((i+1) + ",");
+						}
+						w.write("\r\n");
+						
+						
+						for(int i=0;i<resultReal[0].length;i++) {
+							double sd = Math.sqrt(resultReal[1][i] - resultReal[0][i] * resultReal[0][i]);
+							w.write((resultReal[0][i] - sd) + ",");
+						}
+						w.write("\r\n");
+						for(int i=0;i<resultReal[0].length;i++) {
+							double sd = Math.sqrt(resultReal[1][i] - resultReal[0][i] * resultReal[0][i]);
+							w.write((resultReal[0][i]) + ",");
+						}
+						w.write("\r\n");
+						for(int i=0;i<resultReal[0].length;i++) {
+							double sd = Math.sqrt(resultReal[1][i] - resultReal[0][i] * resultReal[0][i]);
+							w.write((resultReal[0][i] + sd) + ",");
+						}
+						w.write("\r\n");
+						for(int i=0;i<resultRand[0].length;i++) {
+							double sd = Math.sqrt(resultRand[1][i] - resultRand[0][i] * resultRand[0][i]);
+							w.write((resultRand[0][i] - sd) + ",");
+						}
+						w.write("\r\n");
+						for(int i=0;i<resultRand[0].length;i++) {
+							double sd = Math.sqrt(resultRand[1][i] - resultRand[0][i] * resultRand[0][i]);
+							w.write((resultRand[0][i]) + ",");
+						}
+						w.write("\r\n");
+						for(int i=0;i<resultRand[0].length;i++) {
+							double sd = Math.sqrt(resultRand[1][i] - resultRand[0][i] * resultRand[0][i]);
+							w.write((resultRand[0][i] + sd) + ",");
+						}
+						w.write("\r\n");
+						w.flush();
+					}
+				}
+			}
+			w.close();
 			
+			/*
+			BufferedWriter w = new BufferedWriter(new FileWriter(new File("know1Predict1_rnd_sqr.csv")));
+			for(String type1 : types) {
+				for(String type2 : types) {
+					if(type1 != type2) {
+						
+						int count = 0;
+						Hashtable<String,double[]> other = dataSets.get(type2);
+						for(String s : dataSets.get(type1).keySet()) {
+							if(other.containsKey(s)) {
+								count++;
+							}
+						}
+						
+						System.out.println(type1 + " x " + type2);
+						w.write(type1 + "," + type2 + "," + count + "\r\n");
+						double[] result = knowOnePredictOneRand(dataSets.get(type1), dataSets.get(type2));
+						for(double resultVal : result) {
+							w.write(resultVal + ",");
+						}
+						w.write("\r\n");
+					}
+				}
+			}
+			w.close();
+			*/
 			
-			
-			
-				
+			//w.close();
 			
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -84,6 +144,109 @@ public class PredictSimple {
 			e.printStackTrace();
 		}
 		
+		
+	}
+	
+	public static double[][] knowOnePredictOne(Hashtable<String,double[]> know, Hashtable<String,double[]> predict) {
+
+		double[] overall = new double[100];
+		double[] overallSqr = new double[100];
+		
+		HashSet<String> overlap = new HashSet<String>();
+		for(String s : know.keySet()) {
+			if(predict.containsKey(s)) {
+				overlap.add(s);
+			}
+		}
+		
+		for(String word : overlap) {
+			double[] knownTarget = know.get(word);
+
+			Vector<WeightedObject<String>> sims = new Vector<WeightedObject<String>>();
+			for(String helpWord : overlap) {
+				if(!helpWord.equals(word)) {
+					double[] knownHelp = know.get(helpWord);
+					double dist = VectorTools.getCosine(knownTarget, knownHelp);
+					
+					if(Double.isNaN(dist)) {
+						System.out.println(helpWord);
+						VectorTools.show(knownTarget);
+						VectorTools.show(knownHelp);
+					}
+					
+					sims.add(new WeightedObject<String>(helpWord, dist));
+				}
+			}
+			
+			WeightedObject[] sorted = sims.toArray(new WeightedObject[0]);
+			Arrays.sort(sorted);
+
+			double[] toPredict = predict.get(word);
+			
+			double[] guess = VectorTools.mult(predict.get(sorted[0].object), sorted[0].weight);
+			for(int n=0;n<overall.length;n++) {
+				
+				double offBy = VectorTools.getCosine(guess, toPredict);
+				overall[n] += offBy;
+				overallSqr[n] += offBy * offBy;
+				
+				VectorTools.setAdd(VectorTools.mult(predict.get(sorted[n + 1].object), sorted[n + 1].weight), guess);
+			}
+		}
+
+		double[][] ret = {VectorTools.mult(overall, 1.0 / overlap.size()), VectorTools.mult(overallSqr, 1.0 / overlap.size())};
+		return ret;
+	}
+	
+	public static double[][] knowOnePredictOneRand(Hashtable<String,double[]> know, Hashtable<String,double[]> predict) {
+
+		double[] overall = new double[100];
+		double[] overallSqr = new double[100];
+		HashSet<String> overlap = new HashSet<String>();
+		for(String s : know.keySet()) {
+			if(predict.containsKey(s)) {
+				overlap.add(s);
+			}
+		}
+		
+		Random rand = new Random();
+		
+		for(String word : overlap) {
+			double[] knownTarget = know.get(word);
+
+			Vector<WeightedObject<String>> sims = new Vector<WeightedObject<String>>();
+			for(String helpWord : overlap) {
+				if(!helpWord.equals(word)) {
+					double[] knownHelp = know.get(helpWord);
+					double dist = VectorTools.getCosine(knownTarget, knownHelp);
+					sims.add(new WeightedObject<String>(helpWord, dist));
+				}
+			}
+			
+			WeightedObject[] unsorted = sims.toArray(new WeightedObject[0]);
+			for(int i=0;i<unsorted.length;i++) {
+				int j = rand.nextInt(unsorted.length - i) + i;
+				WeightedObject tmp = unsorted[i];
+				unsorted[i] = unsorted[j];
+				unsorted[j] = tmp;
+			}
+
+			double[] toPredict = predict.get(word);
+			
+			double[] guess = VectorTools.mult(predict.get(unsorted[0].object),1);
+			for(int n=0;n<overall.length;n++) {
+				
+				double offBy = VectorTools.getCosine(guess, toPredict);
+				overall[n] += offBy;
+				overallSqr[n] += offBy * offBy;
+				
+				VectorTools.setAdd(VectorTools.mult(predict.get(unsorted[n + 1].object),1), guess);
+			}
+
+		}
+
+		double[][] ret = {VectorTools.mult(overall, 1.0 / overlap.size()), VectorTools.mult(overallSqr, 1.0 / overlap.size())};
+		return ret;
 		
 	}
 	
@@ -134,9 +297,19 @@ public class PredictSimple {
 	
 	public static void buildAll() {
 		
-		Vector<ModelData> models = ModelManager.getAllModels(new File("4-9-2012.dat"));
-		ModelManager.refineModels(models);
+		Vector<Guess> guesses = Guess.getAllGuesses(new File("8-21-2014_guesses.dat"));
+		Vector<ModelData> models = ModelManager.getAllModels(new File("8-21-2014.dat"));
+		ModelManager.refineModels(models);	
+		Guess.linkModels(models, guesses);
+
 		Set<String> words = null;
+		
+		for(int i=0;i<models.size();i++) {
+			if(models.get(i).correctGuesses < 1) {
+				models.remove(i);
+				i--;
+			}
+		}
 		
 		try {
 			System.out.println("McRae Features.");
@@ -434,7 +607,7 @@ public class PredictSimple {
 	}
 	
 	public static Hashtable<String,double[]> loadSPBEAGLE(Vector<ModelData> models) {
-		double[] weights = {1.54582184401584794,-1.46883378664609434,-1.95336694189284813,2.4129212585283405,-3.0464443467093407,.000000007};
+		double[] weights = {1.9666618683917867,0.09277887855848543,0.24119939936888588,3.8057107938604644,0.0936797352763701,0.47659717873232377};
 		Comparator2DTreeBEAGLE metric = new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_ROTATE);
 
 		Hashtable<String,double[]> results = new Hashtable<String,double[]>();

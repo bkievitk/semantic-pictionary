@@ -90,12 +90,15 @@ public class HumanLabeler {
 					i--;
 					count++;
 				}
+			} else if(model == null){
+				System.out.println("Model is not of type Model2DTree [null]");
 			} else {
-				System.out.println("Model is not of type Model2DTree");
+				System.out.println("Model is not of type Model2DTree [" + model.getClass() + "]");
 			}
 		}
 		
 		System.out.println(count + " empty models removed.");
+		System.out.println(models.size() + " models left.");
 	}
 	
 	public static void keepModelsGeonRange(Vector<ModelData> models, int min, int max) {
@@ -127,11 +130,13 @@ public class HumanLabeler {
 			
 			if(!types.contains(gameType)) {
 				
-				Integer count = otherTypes.remove(gameType);
-				if(count == null) {
-					count = 0;
+				if(gameType != null) {
+					Integer count = otherTypes.remove(gameType);
+					if(count == null) {
+						count = 0;
+					}
+					otherTypes.put(gameType, count + 1);
 				}
-				otherTypes.put(gameType, count + 1);
 				
 				models.remove(i);
 				i--;

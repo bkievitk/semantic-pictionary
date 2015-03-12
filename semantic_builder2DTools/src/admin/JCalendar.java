@@ -16,21 +16,24 @@ public class JCalendar extends JPanel {
 	private JTextField year;
 	private JComboBox<String> month;
 	private JComboBox<String> day;
+
+	private static String[] months = {"January","February","March","April","May","June","July","August","September","October","Noveber","December"};
+	private static String[] days = new String[31];
 	
 	public JCalendar() {		
 		
-		String[] months = {"January","February","March","April","May","June","July","August","September","October","Noveber","December"};
-		String[] days = new String[31];
 		for(int i=0;i<days.length;i++) {
 			days[i] = i + "";
 		}
 		
-		c = new GregorianCalendar();		
+		c = new GregorianCalendar();	
 		year = new JTextField(c.get(Calendar.YEAR) + "");
 		month = new JComboBox<String>(months);
 		month.setSelectedIndex(c.get(Calendar.MONTH));
 		day = new JComboBox<String>(days);
 		day.setSelectedIndex(c.get(Calendar.DAY_OF_MONTH));
+		
+		update();
 		
 		year.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent arg0) {}
@@ -58,5 +61,11 @@ public class JCalendar extends JPanel {
 		add(month);
 		add(day);
 		add(year);
+	}
+	
+	public void update() {
+		year.setText(c.get(Calendar.YEAR) + "");
+		month.setSelectedIndex(c.get(Calendar.MONTH));
+		day.setSelectedIndex(c.get(Calendar.DAY_OF_MONTH));
 	}
 }

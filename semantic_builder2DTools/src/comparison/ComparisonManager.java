@@ -5,13 +5,11 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
+import modelManager.Guess;
 import modelTools.GeonModel;
-
 import tools.*;
-
 import comparison.tree2D.*;
 import creator2DTree.Model2DTree;
-
 import admin.HumanLabeler;
 import admin.ModelData;
 import admin.ModelManager;
@@ -24,50 +22,160 @@ public class ComparisonManager  {
 	// Color and geon count histogram.
 	public static void main(String[] args) {
 		
-		Vector<ModelData> models = ModelManager.getAllModels(new File("3-29-2012.dat"));
-		ModelManager.refineModels(models);
+		Vector<Guess> guesses = Guess.getAllGuesses(new File("8-21-2014_guesses.dat"));
+		Vector<ModelData> models = ModelManager.getAllModels(new File("8-21-2014.dat"));
+		ModelManager.refineModels(models);	
+		Guess.linkModels(models, guesses);
+
+		for(int i=0;i<models.size();i++) {
+			if(models.get(i).correctGuesses < 1) {
+				models.remove(i);
+				i--;
+			}
+		}
+
+		//Num models: 7940
+		/*try {
+			System.out.println("Num models: " + models.size());
+			System.in.read();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
 		
-		System.out.println(models.size());
-		//Comparator2DTreePixel metric1 = new Comparator2DTreePixel();
+		Comparator2DTree[] comparators = {
+				//new Comparator2DTreeHistogram(),
+				//new Comparator2DTreePixel(),
+				new Comparator2DTreeRecurse(new NodeSimilarityMetricHard()),
+				//new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_ADD_ROTATE),
+		};
+		
+		double[][] weights = {
+				//null,
+				//null,
+				{0.346679923644288,6.75139126313392E-8,5.097229758851925E-6,8.09428707563313E-7,0.001078098794167262,0.4997304753275638},
+				//{1.9666618683917867,0.09277887855848543,0.24119939936888588,3.8057107938604644,0.0936797352763701,0.47659717873232377}
+		};
+		
+		
+		for(int i=0;i<comparators.length;i++) {
+			System.out.println("Comparator - " + comparators[i].description());
+			dissimilarityMatrix(models, comparators[i], weights[i], new File("dissimilarity_" + i + ".csv"));
+		}
+		
+		
+		//Comparator2DTreeHistogram metric1 = new Comparator2DTreeHistogram();
 		//showMostSimilar(models, metric1, 8, null);
 		
+		//Comparator2DTreePixel metric1 = new Comparator2DTreePixel();
+		//showMostSimilar(models, metric1, 8, null);
+
 		//Comparator2DTree metric2 = new Comparator2DTreeRecurse(new NodeSimilarityMetricSoft());
-		//double[] weights = {4.313359510131976,4.590585382304277E-19,0.008973204333907029,6.675949873572398E-12,0.4226279152152204,2.6782405957593314};
+		//Comparator2DTree metric2 = new Comparator2DTreeRecurse(new NodeSimilarityMetricHard());
+		//Comparator2DTree metric2 = new Comparator2DTreeRecurse(new NodeSimilarityMetricSoft());
+		//double[] weights = {0.346679923644288,6.75139126313392E-8,5.097229758851925E-6,8.09428707563313E-7,0.001078098794167262,0.4997304753275638};
 		//showMostSimilar(models, metric2, 8, weights);
 		
-		//Comparator2DTree metric3 = new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_NONE);
-		//double[] weights2 = {1,1,1,1,1,1};
+		//Comparator2DTree metric3 = new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_ADD_ROTATE);
+		//double[] weights2 = {1.9666618683917867,0.09277887855848543,0.24119939936888588,3.8057107938604644,0.0936797352763701,0.47659717873232377};
 		//showMostSimilar(models, metric3, 8, weights2);
 			
-		System.out.println("Begin optimizing.");
-		Comparator2DTree metric = new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_NONE);
-		double[] start = {1,1,1,1,1,1};
-		optimize(models, metric, start);		
+		//System.out.println("Begin optimizing.");
+		//Comparator2DTree metric = new Comparator2DTreeBEAGLE(Comparator2DTreeBEAGLE.CONNECTION_ADD_ROTATE);
+		//Comparator2DTree metric = new Comparator2DTreeRecurse(new NodeSimilarityMetricHard());
+		//double[] start = {1,1,1,1,1,1};
+		//double[] start = {1.248025651013001,0.025182475571135732,0.22716162283301428,2.4821363048767413,0.16815857643316082,0.4580591405576287};
+				
+		//optimize(models, metric, start);		
 		
 		//CONNECTION_ROTATE      [1.54582184401584794E18][-1.46883378664609434E18][-1.95336694189284813E18][2.4129212585283405E18][-3.0464443467093407E18][7.748341568089777E10]	 0.6165295015474997
 		//CONNECTION_ADD_ROTATE  [4.801515135795339E15][1.17474671174335232E18][3.7657489052699208E18][5.4572468640870618E17][-4.1717005402628137E18][1.4924116242011993]	 0.6143197914181755
 		
 		
 		/*
-		Comparator2DTree metric2 = new Comparator2DTreeRecurse(new NodeSimilarityMetricSoft());
-		double[] weights = {4.313359510131976,4.590585382304277E-19,0.008973204333907029,6.675949873572398E-12,0.4226279152152204,2.6782405957593314};
+		Comparator2DTree metric2 = new Comparator2DTreeRecurse(new NodeSimilarityMetricHard());
+		double[] weights = {0.346679923644288,6.75139126313392E-8,5.097229758851925E-6,8.09428707563313E-7,0.001078098794167262,0.4997304753275638};
 
-        Hashtable<String,Vector<ModelData>> modelsWordGrouped = ModelManager.getAllWordModels(models);
+		ModelData mdBest = null;
+		double simBest = 0;
+		
+        for(ModelData md : models) {
+        	if(md != models.get(0)) {
+	        	double sim = metric2.similarity((Model2DTree)md.model, (Model2DTree)models.get(0).model, weights);
+	        	System.out.println(sim);
+	        	if(sim > simBest) {
+	        		simBest = sim;
+	        		mdBest = md;
+	        	}
+        	}
+        }
+
+        ImageFrame.makeFrame(models.get(0).model.thumbnail(null, 200, 200, 20));
+        ImageFrame.makeFrame(mdBest.model.thumbnail(null, 200, 200, 20));
+        */
+		
+        /*
 		for(WeightedObject<String> word : mostDissimilarInType(models, metric2, weights, true).getObjects()) {
 			
 			Vector<ModelData> modelsInGroup = modelsWordGrouped.get(word.object);			
 			BufferedImage[] images = new BufferedImage[modelsInGroup.size()];
 			for(int i=0;i<modelsInGroup.size();i++) {
 				images[i] = ((Model2DTree)modelsInGroup.get(i).model).thumbnail(Color.WHITE, 100, 100, 5);
+				System.out.println();
 			}
 			ImageFrame.makeFrame(images, 4, 4, word.object);
 		}
-		
 		*/
+		
+		
 		
 		//ModelManager.showAll(models, ModelManager.ORDER_MODEL_TYPE);
 		
 		
+	}	
+
+	public static void dissimilarityMatrix(Vector<ModelData> models, Comparator2DTree metric, double[] weights, File f) {
+		
+		try {
+	        Hashtable<String,Vector<ModelData>> modelsWordGrouped = ModelManager.getAllWordModels(models);
+	        BufferedWriter w = new BufferedWriter(new FileWriter(f));
+	        w.write(metric.description() + "\n");
+	        for(String word1 : modelsWordGrouped.keySet()) {
+   	        	w.write("," + word1);
+	        }
+        	w.write("\n");
+        	
+        	long startTime = System.currentTimeMillis();
+        	long done = 0;
+        	long toDo = modelsWordGrouped.keySet().size() * modelsWordGrouped.keySet().size();
+        	
+	        for(String word1 : modelsWordGrouped.keySet()) {
+   	        	w.write(word1);
+	        	for(String word2 : modelsWordGrouped.keySet()) {
+		        	Vector<ModelData> models1 = modelsWordGrouped.get(word1);
+		        	Vector<ModelData> models2 = modelsWordGrouped.get(word2);
+	   	        	double similarity = ModelManager.getSimilarity(models1, models2, metric, weights);
+	   	        	w.write("," + similarity);
+	   	        	w.flush();
+	   	        	
+	   	        	long thisTime = System.currentTimeMillis();
+	   	        	done ++;
+	   	        	
+	   	        	long timePassed = (thisTime - startTime);
+	   	        	long predict = timePassed * toDo / done - timePassed;
+	   	        	
+	   	        	long seconds = (predict / 1000) % 60;
+	   	        	long minutes = (predict / 1000 / 60) % 60;
+	   	        	long hours = (predict / 1000 / 60 / 60) % 24;
+	   	        	long days = (predict / 1000 / 60 / 60 / 24);
+	   	        	
+	   	        	System.out.println(days + ":" + hours + ":" + minutes + ":" + seconds);
+	            }
+   	        	w.write("\n");
+	        }
+	        w.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static KBox<String> mostDissimilarInType(Vector<ModelData> models, Comparator2DTree metric, double[] weights, boolean isSimilar) {
@@ -161,28 +269,19 @@ public class ComparisonManager  {
         final Hashtable<Integer,Vector<ModelData>> modelsWordGrouped = ModelManager.getAllWordIDModels(models);
 		final Hashtable<String,Vector<ModelData>> modelsSubjectGrouped = ModelManager.getAllUserModels(models);
 		
-		//final Comparator2DTree metric = new Comparator2DTreeRecurse(new NodeSimilarityMetricSoft());
-		//final Comparator2DTree metric = new Comparator2DTreePixel();
-		
         MaximisationFunction funct = new MaximisationFunction() {
         	
             public double function(double[] x){	
-            	/*
-            	double[] newX = new double[x.length];
-            	for(int i=0;i<x.length;i++) {
-            		if(x[i] < 0) {
-            			newX[i] = -x[i];
-            		} else {
-            			newX[i] = x[i];
-            		}
-            	}
             	
-            	newX[4] = 1 / (1 + Math.pow(Math.E, newX[4]));
-            	*/
+            	for(int i=0;i<x.length;i++) {
+            		x[i] = Math.abs(x[i]);
+            		x[i] = Math.max(.00000001, x[i]);
+            	}
+            	x[4] = 1 / (1 + Math.pow(Math.E, x[4]));
+            	x[5] = 1 / (1 + Math.pow(Math.E, x[4]));
             	
                 double score = ModelManager.withinBetween(metric, models, x, modelsWordGrouped, modelsSubjectGrouped);
-                
-                
+                                
                 if(score > bestScore) {
                 	bestScore = score;
 	               	for(int i=0;i<x.length;i++) {
@@ -191,8 +290,7 @@ public class ComparisonManager  {
 	               	System.out.println("\t " + score);
                 } else {
                 	System.out.print(".");
-                }
-                
+                }                
                 
                 return score;
             }
@@ -209,9 +307,6 @@ public class ComparisonManager  {
         
         // Nelder and Mead maximisation procedure
         max.nelderMead(funct, start, step, ftol, 10000);
-                
-        // get the maximum value
-        //double maximum = max.getMaximum();
 
         // get values of y and z at maximum
         double[] param = max.getParamValues();
@@ -220,8 +315,6 @@ public class ComparisonManager  {
         	System.out.print("[" + param[i] + "]");
         }
         System.out.println();
- 		
-        //[4.313359510131976][4.590585382304277E-19][0.008973204333907029][6.675949873572398E-12][0.4226279152152204][2.6782405957593314]	 0.5938904728232494
 	}
 	
 	public static KBox<ModelData> getNMostSimilar(Vector<ModelData> models, int target, int n, Comparator2DTree metric, double[] weights) {

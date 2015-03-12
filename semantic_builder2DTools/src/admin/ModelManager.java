@@ -14,6 +14,7 @@ import javax.swing.*;
 
 import templates.ImageViewer;
 import templates.WindowRender;
+import tools.ImageFrame;
 
 //import mdsj.MDSJ;
 import modelTools.GeonModel;
@@ -31,10 +32,15 @@ public class ModelManager {
 
 	public static final int ORDER_CREATOR = 0;
 	public static final int ORDER_MODEL_TYPE = 1;
-	public static final String adminPassword = "";
+
+	public static String adminPassword = "";
 	
 	public static void main(String[] args) {
-
+		Vector<ModelData> models = ModelManager.getAllModels(new File("8-21-2014.dat"));
+		refineModels(models);
+	}
+	
+	public static void tmp2() {
 		final Vector<ModelData> models = ModelManager.getAllModels(new File("4-9-2012.dat"));
 		refineModels(models);
 		Hashtable<String,Vector<ModelData>> modelSort = ModelManager.getAllWordModels(models);
@@ -92,6 +98,19 @@ public class ModelManager {
 		}
 	}
 	
+	public static void showModel(int modelID) {
+		try {
+			URL url = new URL("http://www.indiana.edu/~semantic/io/adminGetObject.php?adminPassword=" + adminPassword + "&modelID=" + modelID);
+			BufferedReader r = new BufferedReader(new InputStreamReader(url.openStream()));
+			ModelData md = new ModelData(r.readLine());
+			md.buildModel();
+			ImageFrame.makeFrame(md.model.thumbnail(null, 400, 400, 10));
+			
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void tmp() {
 		
 		final JCalendar start = new JCalendar();
@@ -137,12 +156,13 @@ public class ModelManager {
 		HashSet<String> types = new HashSet<String>();
 		types.add(main.MainApplet.GAME_2D_TREE + ":build");
 		types.add(main.MainApplet.GAME_SUBJECT_POOL_1 + ":build");
+		types.add(main.MainApplet.GAME_SUBJECT_POOL_1);
+		types.add(main.MainApplet.GAME_SUBJECT_POOL_2);
 		types.add(main.MainApplet.GAME_MECHANICAL_TURK_1);
+		types.add(main.MainApplet.GAME_MECHANICAL_TURK_2);
 		types.add("1");
 		types.add("2DTree");
-		
-		//types.add(main.MainApplet.GAME_SUBJECT_POOL_1); // BAD WORD RECAL
-		
+				
 		HumanLabeler.selectModelType(models, types);
 
 		for(int i=0;i<models.size();i++) {
@@ -421,7 +441,6 @@ public class ModelManager {
 			Hashtable<String,Vector<ModelData>> modelsSubjectGrouped) {
 
 		double sum = 0;
-		//double sumSqr = 0;
 		int count = 0;
 		
 		for(Integer wordID : modelsWordGrouped.keySet()) {
@@ -430,19 +449,14 @@ public class ModelManager {
 				for(ModelData m2 : models) {
 					if(m1 != m2) {
 						double sim = metric.similarity((Model2DTree)m1.model, (Model2DTree)m2.model, weights);
-						sum += sim;
-												
-						//sumSqr += sim * sim;
+						sum += sim;			
 						count ++;
 					}
 				}
 			}
 		}
 		
-		//System.out.println("Within word average: " + (sum / count) + " variance: " + (sumSqr / count - (sum / count) * (sum / count)) + " count = (" + count + ")");
-		
 		double sum2 = 0;
-		//double sumSqr2 = 0;
 		double count2 = 0;
 		
 		for(String subject : modelsSubjectGrouped.keySet()) {
@@ -452,26 +466,14 @@ public class ModelManager {
 					if(m1 != m2) {
 						double sim = metric.similarity((Model2DTree)m1.model, (Model2DTree)m2.model, weights);
 						sum2 += sim;
-						//sumSqr2 += sim * sim;
 						count2 ++;
 					}
 				}
 			}
 		}
 		
-		//System.out.println("Within subject average: " + (sum2 / count2) + " variance: " + (sumSqr2 / count2 - (sum2 / count2) * (sum2 / count2)) + " count = (" + count2 + ")");
-
-		//System.out.println(sum + " " + count + " " + sum2 + " " + count2);
 		double avg = (sum / count);
 		double avg2 = (sum2 / count2);
-		
-		//if(avg < 0 || avg > 1) {
-		//	System.out.println("AVG1 ERROR: " + avg);
-		//}
-		
-		//if(avg2 < 0 || avg2 > 1) {
-		//	System.out.println("AVG2 ERROR: " + avg2);
-		//}
 		
 		double score = avg / (avg + avg2);
 		
@@ -795,6 +797,7 @@ public class ModelManager {
             return models;
 		} catch(IOException e) {
 			System.out.println("Failed to read model data from web.");
+			e.printStackTrace();
 			return null;
 		}
 	}

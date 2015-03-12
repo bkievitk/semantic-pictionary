@@ -272,6 +272,7 @@ public class IOWeb implements LoadModel, LoadWord, SaveGuess, SaveModel, FlagMod
 			// Connect to website.
             URL url = new URL(webHostIO + "getRndObj.php?playerID=" + playerID + "&gameType=" + gameType);
             
+            System.out.println(url.toString());
             URLConnection connection = url.openConnection();
             
             InputStream stream = connection.getInputStream();
