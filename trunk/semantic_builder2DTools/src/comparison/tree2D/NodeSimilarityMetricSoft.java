@@ -44,7 +44,7 @@ public class NodeSimilarityMetricSoft extends NodeSimilarityMetric {
 		// Take the color difference scaled between 0 and 1.
 		int diff = Math.abs(c1.getRed() - c2.getRed()) + Math.abs(c1.getGreen() - c2.getGreen()) + Math.abs(c1.getBlue() - c2.getBlue());
 		int maxDiff = 255 * 3;
-		similarityScore += colorWeight(weights) * (maxDiff - diff) / maxDiff;
+		similarityScore += colorWeight(weights) * (maxDiff - diff) / (double)maxDiff;
 		
 		int[] r1 = m1.rotation;
 		int[] r2 = m2.rotation;
@@ -77,6 +77,13 @@ public class NodeSimilarityMetricSoft extends NodeSimilarityMetric {
 			similarityScore += shapeWeight(weights);
 		}
 		
-		return similarityScore / combinedWeight(weights);
+		double score = similarityScore / combinedWeight(weights);
+		
+		if(score > 1.0001) {
+			System.out.println("Node error " + similarityScore + " " + combinedWeight(weights));
+		}
+		
+		score = Math.max(1, score);		
+		return score;
 	}
 }

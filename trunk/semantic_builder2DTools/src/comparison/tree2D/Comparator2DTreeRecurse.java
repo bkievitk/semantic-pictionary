@@ -33,7 +33,8 @@ public class Comparator2DTreeRecurse implements Comparator2DTree {
 		double similarityScoreChildrenMax = 0;
 		
 		// Add similarity of this object.
-		similarityScore += metric.similarity(n1, n2, weights);
+		double nodeSimilarity = metric.similarity(n1, n2, weights);
+		similarityScore += nodeSimilarity;
 		similarityScoreMax += 1.0;
 		
 		// This is a list of all children in the second object already matched with something in the first object.
@@ -86,13 +87,14 @@ public class Comparator2DTreeRecurse implements Comparator2DTree {
 
 		similarityScore += similarityScoreChildren;
 		similarityScoreMax += similarityScoreChildrenMax;
-				
-		if(similarityScore > similarityScoreMax) {
+			
+		double returnScore = similarityScore / similarityScoreMax;
+		if(returnScore > 1.000000001) {
 			System.out.println("Error " + similarityScore + " " + similarityScoreMax + " " + similarityScoreChildren + " " + similarityScoreChildrenMax);
 		}
 		
 		
-		return similarityScore / similarityScoreMax;
+		return returnScore;
 	}
 	
 }

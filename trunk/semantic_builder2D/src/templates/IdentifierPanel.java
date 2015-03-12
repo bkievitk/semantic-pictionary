@@ -112,7 +112,7 @@ public class IdentifierPanel extends JPanel implements ActionListener {
 		String[] directions = {"","none","unknown","left","right"};
 		directionality = new JComboBox(directions);
 		directionality.setBorder(BorderFactory.createTitledBorder(directionality.getBorder(),"directionality"));
-		guessPanel.add(directionality);
+		//guessPanel.add(directionality);
 		
 		if(iomanager.isFlagModelSet()) {
 			ActionListener al = new ActionListener() {
@@ -152,6 +152,8 @@ public class IdentifierPanel extends JPanel implements ActionListener {
 			Integer wordID = wordIDs.get(word);
 			
 			if(wordID != null) {
+
+				System.out.println("[" + gameType + "]");
 				if(iomanager.saveWordGuess(credentials.userID, credentials.password, gameType, directionality.getSelectedIndex(), modelID, wordID)) {
 					getObject();
 				}	

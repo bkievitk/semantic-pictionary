@@ -54,6 +54,7 @@ public class MainApplet extends JApplet {
 	public static final String GAME_2D_NO_TREE = 		"2DNoTree";
 	public static final String GAME_3D_TREE = 			"3DTree";
 	public static final String GAME_SUBJECT_POOL_1 =	"subjetPoolExperiment1";
+	public static final String GAME_SUBJECT_POOL_2 =	"subjetPoolExperiment2";
 	public static final String GAME_FEATURE = 			"feature";
 	public static final String GAME_MECHANICAL_TURK_1 = "mechanicalTurk1";
 	public static final String GAME_MECHANICAL_TURK_2 = "mechanicalTurk2";
@@ -63,6 +64,7 @@ public class MainApplet extends JApplet {
 												GAME_2D_NO_TREE + ":build", 	GAME_2D_NO_TREE + ":identify",
 												GAME_3D_TREE + ":build",  		GAME_3D_TREE + ":identify", 
 												GAME_SUBJECT_POOL_1 + ":build",
+												GAME_SUBJECT_POOL_2,
 												GAME_FEATURE,
 												GAME_MECHANICAL_TURK_1,
 												GAME_MECHANICAL_TURK_2,
@@ -317,7 +319,105 @@ public class MainApplet extends JApplet {
 				container.add(cp);
 				container.validate();
 			}
+		} else if(gameData[0].equals(GAME_SUBJECT_POOL_2)) {
+			final int labelCount = 20;
+			final int wordCount = 20;
+
+			Model2DTree model2DTree = new Model2DTree(); 
+			GeonModel model = model2DTree;
+			WindowRender2DTree renderWindow = new WindowRender2DTree(model2DTree);
+
+			IdentifierPanel ip = new IdentifierPanel(credentials,container,renderWindow,model,message,iomanager,gameType,GAME_MECHANICAL_TURK_1);
+			final JLabel label = new JLabel("label");
+			label.setForeground(Color.WHITE);
+			
+			ip.guessPanel.add(label);
+			
+			container.removeAll();
+			container.add(ip);
+			container.validate();
+			
+			IOWeb limited = new IOWeb(message) {
+				public int loadModel(GeonModel modelIn, int playerID, String gameType) {
+					int result = super.loadModel(modelIn, playerID, gameType);					
+					int count = getLabelCount(playerID, GAME_SUBJECT_POOL_2);
+					
+					if(count >= labelCount) {
+						Model2DTree model2DTree = new Model2DTree(); 
+						GeonModel model = model2DTree;
+						WindowRender2DTree renderWindow = new WindowRender2DTree(model2DTree);
+						WindowPrimitiveEdit2DTree primitiveEditor = new WindowPrimitiveEdit2DTree(model2DTree);
+						WindowAddPrimitive2DTree addPrimitive = new WindowAddPrimitive2DTree(model2DTree);
+						WindowAttachment2DTree attachment = new WindowAttachment2DTree(model2DTree,true);
+						
+						WindowOptions windowOptions = new WindowOptions(model);
+						CreatorPanel cp = new CreatorPanel(credentials,gameData[0],renderWindow,windowOptions,primitiveEditor,addPrimitive,attachment,model,message,iomanager);
+						cp.gameType = gameType;
+						windowOptions.setCreatorPanel(cp);
+						
+						container.removeAll();
+						container.add(cp);
+						container.validate();
+						
+					} else {
+						label.setText((count + 1) + "/" + labelCount);						
+					}
+					return result;
+				}
+			};
+			iomanager.setLoadModel(limited);			
+			
+			IOWeb limited2 = new IOWeb(message) {
+				public WordPair loadWord(int playerID, String gameType) {
+					WordPair pair = super.loadWord(playerID, gameType);
+					int count = getModelCount(playerID, gameType);
+										
+					if(count >= wordCount) {
+						
+						container.removeAll();
+						container.add(new JTextArea("You have completed all " + wordCount + " objects. You are done. Thank you."));
+						container.validate();
+						
+					} else {
+						pair.description += " (" + (count+1)  + " out of " + wordCount + ")";
+					}
+					
+					return pair;
+				}
+			};
+			iomanager.setLoadWord(limited2);
+
+			int count = limited.getLabelCount(credentials.userID, GAME_SUBJECT_POOL_2);
+			label.setText((count + 1) + "/" + labelCount);		
+			
+			if(count >= labelCount) {
+				
+				System.out.println(limited.getLabelCount(credentials.userID, GAME_SUBJECT_POOL_2) + ">" + labelCount);
+				
+				model2DTree = new Model2DTree(); 
+				model = model2DTree;
+				renderWindow = new WindowRender2DTree(model2DTree);
+				WindowPrimitiveEdit2DTree primitiveEditor = new WindowPrimitiveEdit2DTree(model2DTree);
+				WindowAddPrimitive2DTree addPrimitive = new WindowAddPrimitive2DTree(model2DTree);
+				WindowAttachment2DTree attachment = new WindowAttachment2DTree(model2DTree,true);
+				
+				WindowOptions windowOptions = new WindowOptions(model);
+				CreatorPanel cp = new CreatorPanel(credentials,gameData[0],renderWindow,windowOptions,primitiveEditor,addPrimitive,attachment,model,message,iomanager);
+				cp.gameType = gameType;
+				windowOptions.setCreatorPanel(cp);
+				
+				container.removeAll();
+				container.add(cp);
+				container.validate();
+				
+				if(limited2.getModelCount(credentials.userID, gameType) >= wordCount) {
+					container.removeAll();
+					container.add(new JTextArea("You have completed all " + wordCount + " objects. You are done. Thank you."));
+					container.validate();
+				}
+			}
 		} else if(gameData[0].equals(GAME_FEATURE)) {
+		
 			try {
 				FeatureGameGUI featureGame = new FeatureGameGUI(credentials);				
 				featureGame.setGameState(FeatureGameGUI.State.StartScreen);
@@ -387,7 +487,7 @@ public class MainApplet extends JApplet {
 			GeonModel model = model2DTree;
 			WindowRender2DTree renderWindow = new WindowRender2DTree(model2DTree);
 
-			IdentifierPanel ip = new IdentifierPanel(credentials,container,renderWindow,model,message,iomanager,gameType,GAME_MECHANICAL_TURK_1);
+			IdentifierPanel ip = new IdentifierPanel(credentials,container,renderWindow,model,message,iomanager,GAME_MECHANICAL_TURK_1,GAME_MECHANICAL_TURK_1);
 			final JLabel label = new JLabel("label");
 			label.setForeground(Color.WHITE);
 			
@@ -400,7 +500,7 @@ public class MainApplet extends JApplet {
 			IOWeb limited = new IOWeb(message) {
 				public int loadModel(GeonModel modelIn, int playerID, String gameType) {
 					int result = super.loadModel(modelIn, playerID, gameType);					
-					int count = getLabelCount(playerID, GAME_MECHANICAL_TURK_2);
+					int count = getLabelCount(playerID, gameType);
 					
 					if(count >= labelCount) {
 						Model2DTree model2DTree = new Model2DTree(); 
@@ -447,12 +547,12 @@ public class MainApplet extends JApplet {
 			};
 			iomanager.setLoadWord(limited2);
 
-			int count = limited.getLabelCount(credentials.userID, GAME_MECHANICAL_TURK_2);
+			int count = limited.getLabelCount(credentials.userID, GAME_MECHANICAL_TURK_1);
 			label.setText((count + 1) + "/" + labelCount);		
 			
 			if(count >= labelCount) {
 				
-				System.out.println(limited.getLabelCount(credentials.userID, GAME_MECHANICAL_TURK_2) + ">" + labelCount);
+				System.out.println(limited.getLabelCount(credentials.userID, GAME_MECHANICAL_TURK_1) + ">" + labelCount);
 				
 				model2DTree = new Model2DTree(); 
 				model = model2DTree;
