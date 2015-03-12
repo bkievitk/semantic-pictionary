@@ -3,3 +3,11 @@
 = Introduction =
 
 We are trying to find out how shape information effects natural language understanding. In this game, we ask you to create a representation of a common noun using basic objects like squares and circles. Another player must then guess what object you created. It's Pictionary with shapes
+
+To start using the data set select one of the following.
+
+* [Data data]: Information about the data sets available.
+
+* [SemanticBuilder2DTools semantic_builder2DTools]: Java code to manage data.
+
+* [SemanticBuilder2D semantic_builder2D]: Java code to run the experiment.
