@@ -155,8 +155,6 @@ public class ModelManager {
 	public static void refineModels(Vector<ModelData> models) {
 		HashSet<String> types = new HashSet<String>();
 		types.add(main.MainApplet.GAME_2D_TREE + ":build");
-		types.add(main.MainApplet.GAME_SUBJECT_POOL_1 + ":build");
-		types.add(main.MainApplet.GAME_SUBJECT_POOL_1);
 		types.add(main.MainApplet.GAME_SUBJECT_POOL_2);
 		types.add(main.MainApplet.GAME_MECHANICAL_TURK_1);
 		types.add(main.MainApplet.GAME_MECHANICAL_TURK_2);
