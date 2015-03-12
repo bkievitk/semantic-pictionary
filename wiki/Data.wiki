@@ -62,6 +62,8 @@ NOTE: All ids are one greater than the correct value (they start indexing from 0
 
 == Model Representations ==
 
+NOTE: The wordID on games with the type "subjetPoolExperiment1" do not match the wordID on all other game types.
+
 The model table contains the meat of the data. It contains some simple fields such as an id (modelID), the word that was requested to be represented (wordID), the player that made the model (playerID), the game type (see versions), and the time that the GeonObject was submitted. Most of the data are stored in the representation field which keeps a string representation of the GeonObject built.
 
 As each GeonObject is a tree representation of the set of geons, the first thing to note is that the data set is divided into geons nested in geons. Thus the following structure: "[geon1[geon11[geon111]][geon12]]" represents a root geon "geon1" with two children, "geon11" and "geon12" with "geon11" having its own child, "geon111". The square brackets are always used to delimit different geons and are never used within the representation of a geon.
