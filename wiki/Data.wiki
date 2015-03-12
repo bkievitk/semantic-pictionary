@@ -1,0 +1,33 @@
+#Data available on Semantic Pictionary
+
+= Tables =
+
+There are four tables describing the complete raw Semantic Pictionary Data set.
+
+ * Words: Contains the list of all words that are being used at the moment.
+
+ * Player: Contains basic information on players.
+
+ * Guess: Contains guesses made by participants about the correct labels for GeonObjects.
+
+ * Models: Contains the information on each individual GeonObject.
+
+= SQL Tables =
+
+The SQL code for generating each of the tables can be found in the data folder with the file extensions ".sql". These files do not contain any of the actual data, but only the table formatting.
+
+= CSV Tables =
+
+The CSV files ".csv" contain the actual data from the project. These files can also be found in the data folder and their names correspond to a .sql file each. The CSV files do not contain headers but they should again match their corresponding .sql file except for the player.csv file which has had the password,email and name columns removed.
+
+= Handedness =
+
+The handedness file contains measures of which direction the images were judged to be facing for a subset of [GeonObjects]. The handedness of the creator of that [GeonObject] as well as basic information about that user is also available on each line.
+
+= Serialized =
+
+The data is also available in serialized form that is compatible with the Java code included. The newest data block is available as 8-21-2014.dat. This data block can be loaded through the ModelManager class as follows:
+
+Vector<ModelData> models = ModelManager.getAllModels(new File("8-21-2014.dat"));
+
+Note: If the file is not found, the system will attempt to automatically generate a new data file by pinging the live database. As the ModelManager.adminPassword variable is set to blank in this code set, this will result in a failed call and the data set will not be generated.
